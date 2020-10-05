@@ -7,7 +7,7 @@ RUN mkdir /work
 EXPOSE 8061
 
 # Copying the application's jar file inside the container
-COPY target/create-pact-webhook-1.0-SNAPSHOT /work/createwebhhok.jar
+COPY target/create-pact-webhook-1.0-SNAPSHOT /work/createwebhook.jar
 
 # Run the jar file 
-CMD java -jar /work/createwebhhok.jar
+CMD java -jar /work/createwebhook.jar
