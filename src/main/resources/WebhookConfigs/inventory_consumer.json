@@ -1,6 +1,6 @@
 {
     "consumerName":"inventory_consumer", 
 	"providerName":"inventory_provider",
-    "projectName": "pactcontract",    
-	"pipelineName":"sp-pact-contract-consumer-dev"      
+    "projectName": "pactwebhook",
+	"pipelineName":"rk-create-pact-webhook"
 }

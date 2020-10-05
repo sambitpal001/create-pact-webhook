@@ -40,8 +40,8 @@ public class PactCreateWebhookService {
     @Value( "${api.key}" )
     private String strApiKey;
 
-    @Value( "${pact.local.url}" )
-    private String strPactLocalBaseUrl;
+    @Value( "${pact.url}" )
+    private String strPactBaseUrl;
 
     @Value( "${pact.codefresh.url}" )
     private String strPactCodeFreshBaseUrl;
@@ -105,7 +105,7 @@ public class PactCreateWebhookService {
         LOG.info("My JSON String is = {}",strPreparedJsonString);
 
         HttpClient client = HttpClient.newHttpClient();
-        String strGetWebhookUrl = strPactLocalBaseUrl + sProvider +"/consumer/" +sConsumer;
+        String strGetWebhookUrl = strPactBaseUrl + sProvider +"/consumer/" +sConsumer;
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(strGetWebhookUrl))
                 .header("Content-Type", "application/json")
@@ -125,7 +125,7 @@ public class PactCreateWebhookService {
     private boolean isGivenConsumerWehookExists(String consumer, String provider) throws IOException, InterruptedException{
         Boolean blresponseWebhook = false;
         HttpClient client = HttpClient.newHttpClient();
-        String strGetWebhookUrl = strPactLocalBaseUrl + provider +"/consumer/" +consumer;
+        String strGetWebhookUrl = strPactBaseUrl + provider +"/consumer/" +consumer;
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(strGetWebhookUrl))
                 .header("Content-Type", "application/json")
