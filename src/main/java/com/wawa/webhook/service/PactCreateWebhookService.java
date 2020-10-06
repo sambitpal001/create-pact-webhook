@@ -54,7 +54,7 @@ public class PactCreateWebhookService {
     @EventListener(ApplicationReadyEvent.class)
     public void createPactWebhook() throws IOException, InterruptedException, ParseException, URISyntaxException {
         LOG.info("Get the webhook details from WebhookConfigs folder inside /resource");
-        File directory = new File(getClass().getResource("/WebhookConfigs").toExternalForm().replace("file:/", ""));
+        File directory = new File(getClass().getResource("/WebhookConfigs").toExternalForm().replace("jar:", ""));
         LOG.info("directory= {}",directory.getPath());
         if(directory!=null){
         File[] listOfFiles = directory.listFiles();
