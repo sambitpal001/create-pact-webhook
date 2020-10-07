@@ -9,13 +9,14 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Service;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -47,48 +48,42 @@ public class PactCreateWebhookService {
     private String strPactCodeFreshBaseUrl;
 
 
-
     /*
     Create the webhook based on the given consumer
     */
     @EventListener(ApplicationReadyEvent.class)
-    public void createPactWebhook() throws IOException, InterruptedException, ParseException, URISyntaxException {
+    public void createPactWebhook() throws IOException, InterruptedException, ParseException {
         LOG.info("Get the webhook details from WebhookConfigs folder inside /resource");
-        String strPath = this.getClass().getClassLoader().getResource("WebhookConfigs").toExternalForm();
-        String ssPath = null;
-        if(strPath.contains("file:")){
-            ssPath = strPath.replace("file:/", "");
-        }else if(strPath.contains("jar:")){
-            ssPath = strPath.replace("jar:", "");
-        }
-        File directory = new File(ssPath);
-        LOG.info("directory= {}",directory.getPath());
-        if(directory!=null){
-        File[] listOfFiles = directory.listFiles();
-        for (File listFile : listOfFiles) {
-            String strWebhookModifed = sdf.format(listFile.lastModified());
-            if (strWebhookModifed.equalsIgnoreCase(strCurrentDate)) {
-                String strFileName = listFile.getName();
-                LOG.info("Modifed file Name : {}", strFileName );
-                //JSON parser object to parse read file
-                JSONParser jsonParser = new JSONParser();
-                JSONObject data = (JSONObject) jsonParser.parse(new FileReader(listFile));
-                String strConsumerName = (String) data.get("consumerName");
-                String strProviderName = (String) data.get("providerName");
-                String strProjectName = (String) data.get("projectName");
-                String strPipelineName = (String) data.get("pipelineName");
-                LOG.info("strConsumerName= {}, strProviderName= {}, strProjectName= {} ", strConsumerName, strProviderName, strProjectName);
-                //GET for http://localhost:8500/webhooks/provider/inventory_provider/consumer/inventory_consumer
-                Boolean blWebhookPresent = isGivenConsumerWehookExists(strConsumerName, strProviderName);
-                //If Webhook not exists create a new webhook
-                LOG.info("Webhook exists= {}",blWebhookPresent);
-                if (!blWebhookPresent) {
-                    LOG.info("Creating a webhook");
-                    createOneWebhook(strConsumerName, strProviderName, strProjectName, strPipelineName);
+        URL url = this.getClass().getClassLoader().getResource("WebhookConfigs");
+        if(url!=null){
+        ClassLoader cl = PactCreateWebhookService.class.getClassLoader();
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
+        Resource[] resources = resolver.getResources("classpath:WebhookConfigs/*");
+            for (Resource listFile : resources) {
+                String strWebhookModifed = sdf.format(listFile.lastModified());
+                LOG.info("Modifed time : {} and current time : {}", strWebhookModifed, strCurrentDate);
+                if (strWebhookModifed.equalsIgnoreCase(strCurrentDate)) {
+                    String strFileName = listFile.getFilename();
+                    LOG.info("Modifed file Name : {}", strFileName);
+                    //JSON parser object to parse read file
+                    JSONParser jsonParser = new JSONParser();
+                    JSONObject data = (JSONObject) jsonParser.parse(new InputStreamReader(listFile.getInputStream()));
+                    String strConsumerName = (String) data.get("consumerName");
+                    String strProviderName = (String) data.get("providerName");
+                    String strProjectName = (String) data.get("projectName");
+                    String strPipelineName = (String) data.get("pipelineName");
+                    LOG.info("strConsumerName= {}, strProviderName= {}, strProjectName= {} ", strConsumerName, strProviderName, strProjectName);
+                    //GET for http://localhost:8500/webhooks/provider/inventory_provider/consumer/inventory_consumer
+                    Boolean blWebhookPresent = isGivenConsumerWehookExists(strConsumerName, strProviderName);
+                    //If Webhook not exists create a new webhook
+                    LOG.info("Webhook exists= {}", blWebhookPresent);
+                    if (!blWebhookPresent) {
+                        LOG.info("Creating a webhook");
+                        createOneWebhook(strConsumerName, strProviderName, strProjectName, strPipelineName);
+                    }
                 }
             }
-        }
-    }else{
+        }else{
             LOG.error("No Files at /WebhookConfigs folder");
         }
     }
