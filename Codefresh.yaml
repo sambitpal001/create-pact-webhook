@@ -7,6 +7,7 @@ stages:
   - "clone"
   - "test"
   - "build"
+  - "mystep"
 
 steps:
   clone:
@@ -31,8 +32,25 @@ steps:
   build:
     title: "Building Docker image"
     type: "build"
-    image_name: "create-pact-webhook"
+    image_name: "pals2/create-pact-webhook"
     working_directory: "${{clone}}"
-    tag: "multi-stage"
+    tag: "latest"
+    registry: "dockerhub"
     dockerfile: "Dockerfile"
     stage: "build"
+
+  mystep:
+    title: "Run Docker image"
+    stage: "mystep"
+    image: "pals2/create-pact-webhook:latest"
+    commands:
+      - pwd
+      - ls
+      - java -jar ./create-pact-webhook/target/create-pact-webhook-1.0-SNAPSHOT.jar
+      - exit
+#     services:
+#       composition:
+#         my-spring-app:
+#           image: pals2/create-pact-webhook:latest
+#           ports:
+#            - 8080
