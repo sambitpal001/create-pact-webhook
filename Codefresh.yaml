@@ -5,7 +5,7 @@ version: "1.0"
 # Stages can help you organize your steps in stages
 stages:
   - "clone"
-  - "test"
+  - "package"
   - "build"
   - "mystep"
 
@@ -20,14 +20,14 @@ steps:
     git: "github"
     stage: "clone"
 
-  test:
+  package:
     title: "Compile/Unit test"
     type: "freestyle" # Run any command
     image: "maven:3.6.3-adoptopenjdk-11" # The image in which command will be executed
     working_directory: "${{clone}}" # Running command where code cloned
     commands:
-      - mvn -Dmaven.repo.local=/codefresh/volume/m2_repository package
-    stage: test
+      - mvn -Dmaven.repo.local=/codefresh/volume/m2_repository clean package
+    stage: package
 
   build:
     title: "Building Docker image"
@@ -44,13 +44,11 @@ steps:
     stage: "mystep"
     image: "pals2/create-pact-webhook:latest"
     commands:
+      #- java -jar ./create-pact-webhook/target/create-pact-webhook-1.0-SNAPSHOT.jar
       - pwd
-      - ls
-      - java -jar ./create-pact-webhook/target/create-pact-webhook-1.0-SNAPSHOT.jar
-      - exit
-#     services:
-#       composition:
-#         my-spring-app:
-#           image: pals2/create-pact-webhook:latest
-#           ports:
-#            - 8080
+    services:
+      composition:
+        my-spring-app:
+          image: pals2/create-pact-webhook:latest
+          ports:
+            - 8080
